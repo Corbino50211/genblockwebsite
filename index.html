@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genblock — Minecraft Server</title>
+<meta name="description" content="Genblock: a Minecraft Java 26.3 server. Get a free 100x100 plot, buy generators from villagers, mine your ore and climb from coal to emerald blocks.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%237d7d7d'/%3E%3Crect x='1' y='1' width='2' height='2' fill='%23222'/%3E%3Crect x='5' y='2' width='2' height='1' fill='%23222'/%3E%3Crect x='2' y='5' width='3' height='2' fill='%23222'/%3E%3Crect x='6' y='5' width='1' height='2' fill='%23222'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #15171b;
+    --panel: #1e2127;
+    --panel-2: #262a31;
+    --line: #333842;
+    --text: #e8e6e1;
+    --muted: #9aa0aa;
+    --grass: #5fae3a;
+    --grass-dark: #3f7d25;
+    --gold: #f5d33b;
+    --emerald: #2ad16a;
+    --pixel: 'Press Start 2P', monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 Inter, system-ui, sans-serif;
+  }
+  a { color: var(--gold); }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 16px; }
+  h1, h2, h3 { font-family: var(--pixel); font-weight: 400; line-height: 1.4; margin: 0; }
+  h2 { font-size: clamp(16px, 3vw, 22px); margin-bottom: 8px; }
+  h3 { font-size: 12px; }
+  .lead { color: var(--muted); margin: 0 0 28px; max-width: 640px; }
+  section { padding: 64px 0; border-top: 4px solid #0e1013; }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 5; background: rgba(21,23,27,.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  nav .brand { font-family: var(--pixel); font-size: 13px; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+  nav .links { margin-left: auto; display: flex; gap: 18px; }
+  nav .links a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px; }
+  nav .links a:hover { color: var(--text); }
+  @media (max-width: 640px) { nav .links { display: none; } }
+
+  /* hero */
+  .hero {
+    position: relative;
+    padding: 96px 0 0;
+    background:
+      linear-gradient(180deg, #6fb7ff 0%, #a9d6ff 70%, #bfe2ff 100%);
+    color: #10131a;
+    overflow: hidden;
+  }
+  .hero .wrap { position: relative; z-index: 1; padding-bottom: 120px; }
+  .hero h1 {
+    font-size: clamp(34px, 8vw, 72px);
+    color: #fff;
+    text-shadow: 4px 4px 0 #3a3a3a, 8px 8px 0 rgba(0,0,0,.18);
+    letter-spacing: 2px;
+  }
+  .hero p.tag { font-size: clamp(16px, 2.4vw, 20px); font-weight: 600; max-width: 560px; margin: 18px 0 28px; color: #1b2433; }
+  .ground {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
+    background:
+      linear-gradient(180deg, var(--grass) 0 18px, var(--grass-dark) 18px 26px, #79553a 26px 100%);
+    image-rendering: pixelated;
+  }
+  .ground::before {
+    content: ""; position: absolute; inset: 26px 0 0 0;
+    background-image:
+      radial-gradient(#5d4029 25%, transparent 26%),
+      radial-gradient(#8f6747 22%, transparent 23%);
+    background-size: 24px 24px, 32px 32px;
+    background-position: 0 0, 12px 10px;
+    opacity: .7;
+  }
+  .hero-gens { position: absolute; right: 6%; bottom: 96px; display: flex; gap: 10px; align-items: flex-end; }
+  .hero-gens .stack { display: flex; flex-direction: column; }
+  .hero-gens .stack svg { width: 48px; height: 48px; display: block; }
+  @media (max-width: 760px) { .hero-gens { right: 50%; transform: translateX(50%); } .hero .wrap { padding-bottom: 210px; } }
+
+  .join { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .ip {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: #10131a; color: #fff; border: 0; cursor: pointer;
+    padding: 14px 18px; font: 600 16px/1 Inter, sans-serif;
+    box-shadow: 4px 4px 0 #3a3a3a;
+  }
+  .ip code { font-family: var(--pixel); font-size: 13px; color: var(--gold); }
+  .ip .hint { color: #9aa0aa; font-size: 13px; }
+  .ip:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #3a3a3a; }
+  .status { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.6); padding: 10px 14px; font-weight: 600; font-size: 14px; }
+  .dot { width: 10px; height: 10px; background: #888; }
+  .dot.on { background: #1fbf4a; box-shadow: 0 0 0 3px rgba(31,191,74,.25); }
+  .dot.off { background: #d9453b; }
+  .version { margin-top: 14px; font-size: 14px; color: #263247; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: s; }
+  @media (max-width: 860px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+  .step { background: var(--panel); border: 1px solid var(--line); padding: 20px; position: relative; }
+  .step::before {
+    counter-increment: s; content: counter(s);
+    font-family: var(--pixel); font-size: 12px; color: #10131a; background: var(--gold);
+    position: absolute; top: -12px; left: 16px; padding: 6px 8px;
+  }
+  .step h3 { margin: 10px 0 8px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* gens */
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tab { background: var(--panel); color: var(--muted); border: 1px solid var(--line); padding: 10px 14px; font: 600 14px Inter, sans-serif; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--panel-2); color: var(--text); border-color: var(--gold); }
+  .ladder { display: grid; gap: 10px; }
+  .gen {
+    display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); padding: 12px 16px;
+  }
+  .gen svg { width: 56px; height: 56px; display: block; }
+  .gen .name { font-weight: 800; }
+  .gen .grows { color: var(--muted); font-size: 14px; }
+  .gen .cost { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { background: #10131a; border: 1px solid var(--line); padding: 2px 8px; font-size: 13px; white-space: nowrap; }
+  .chip b { color: var(--gold); font-weight: 600; }
+  .pick { font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; }
+  .pick strong { display: block; color: var(--text); font-size: 13px; }
+  @media (max-width: 560px) { .gen { grid-template-columns: 44px 1fr; } .gen svg { width: 44px; height: 44px; } .pick { grid-column: 2; text-align: left; } }
+  .note { color: var(--muted); font-size: 14px; margin-top: 16px; }
+
+  /* cards */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); padding: 22px; }
+  .card h3 { margin-bottom: 10px; color: var(--gold); }
+  .card p { margin: 0; color: var(--muted); }
+  .card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); }
+
+  /* commands */
+  .cmds { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); }
+  .cmds td { padding: 12px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  .cmds tr:first-child td { border-top: 0; }
+  .cmds td:first-child { white-space: nowrap; }
+  .cmds code { font-family: var(--pixel); font-size: 11px; color: var(--emerald); }
+  .cmds td:last-child { color: var(--muted); }
+  @media (max-width: 560px) { .cmds td { display: block; } .cmds td:last-child { border-top: 0; padding-top: 0; } }
+
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 13px; border-top: 4px solid #0e1013; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 80px); background: var(--emerald); color: #08210f; font-weight: 800; padding: 10px 16px; transition: transform .2s; }
+  .toast.show { transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><span id="navIcon"></span>GENBLOCK</a>
+    <div class="links">
+      <a href="#how">How to play</a>
+      <a href="#gens">Gens</a>
+      <a href="#plots">Plots</a>
+      <a href="#commands">Commands</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>GENBLOCK</h1>
+    <p class="tag">Get your own 100x100 plot, buy generators from the villagers, mine your ore and work your way from coal all the way to emerald blocks.</p>
+    <div class="join">
+      <button class="ip" id="ipBtn" type="button" aria-label="Copy server address">
+        <code id="ipText"></code><span class="hint">click to copy</span>
+      </button>
+      <span class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Checking server…</span></span>
+    </div>
+    <div class="version">Minecraft: Java Edition 26.3</div>
+  </div>
+  <div class="hero-gens" id="heroGens" aria-hidden="true"></div>
+  <div class="ground"></div>
+</header>
+
+<main>
+  <section id="how">
+    <div class="wrap">
+      <h2>How to play</h2>
+      <p class="lead">No waiting for an admin to come online. Everything runs on its own.</p>
+      <div class="steps">
+        <div class="step"><h3>Join</h3><p>You get a free 100x100 plot the first time you join. Type <b>/plot</b> to go there.</p></div>
+        <div class="step"><h3>Visit the shack</h3><p>At spawn, the Oak, Stone and Dirt gens are free for everyone. Mine logs and cobblestone, then craft your first tools.</p></div>
+        <div class="step"><h3>Buy a gen</h3><p>Bring 192 oak logs to the <b>Gen Shop</b> villager for your first Coal Gen.</p></div>
+        <div class="step"><h3>Mine &amp; upgrade</h3><p>Place gens on your plot. Mine the block on top and it grows right back. Save up for the next tier.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gens">
+    <div class="wrap">
+      <h2>Generators</h2>
+      <p class="lead">Every gen grows one block on top of it. Mine it and it comes back. Buy them from the Gen Shop villager with the ores you've mined.</p>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="ore">Ore gens</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="block">Block gens</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="shack">Shack gens (free)</button>
+      </div>
+      <div class="ladder" id="ladder"></div>
+      <p class="note">Sneak + right-click a gen with an empty hand to pick it up and move it. You need the right pickaxe to get drops, same as in vanilla.</p>
+    </div>
+  </section>
+
+  <section id="plots">
+    <div class="wrap">
+      <h2>Plots &amp; friends</h2>
+      <p class="lead">Your plot is yours. Show it off, or build it together.</p>
+      <div class="cards">
+        <div class="card"><h3>Your plot</h3><p>100x100 blocks of flat grass with roads around it. Only you can pick up the gens on your plot.</p></div>
+        <div class="card"><h3>Visitors</h3><p>Anyone can come look with <b>/plot visit &lt;name&gt;</b>, but visitors can't break, place or open anything.</p></div>
+        <div class="card"><h3>Friends</h3><p>Friends can build and mine gens on each other's plots. Send a request with <b>/friend add &lt;name&gt;</b>.</p></div>
+      </div>
+      <div class="cards" style="margin-top:16px">
+        <div class="card" style="grid-column: 1 / -1">
+          <h3>Block Shop</h3>
+          <p>The Block Shop villager trades building blocks for ores, so you never have to wait for an admin:</p>
+          <ul>
+            <li>All 16 concrete colors, glass, wool and grass</li>
+            <li>Spruce, birch, jungle, acacia, dark oak and cherry logs</li>
+            <li>Bricks, stone bricks, deepslate, tuff, quartz and prismarine</li>
+            <li>Glowstone and sea lanterns for light, plus bread and steak</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="commands">
+    <div class="wrap">
+      <h2>Commands</h2>
+      <p class="lead">That's all of them.</p>
+      <table class="cmds">
+        <tr><td><code>/plot</code></td><td>Teleport to your plot</td></tr>
+        <tr><td><code>/plot visit &lt;player&gt;</code></td><td>Visit someone's plot</td></tr>
+        <tr><td><code>/friend add &lt;player&gt;</code></td><td>Send a friend request (they click [Accept])</td></tr>
+        <tr><td><code>/friend remove &lt;player&gt;</code></td><td>Remove a friend</td></tr>
+        <tr><td><code>/friend list</code></td><td>See your friends</td></tr>
+        <tr><td><code>/spawn</code></td><td>Back to spawn, the shack and the shops</td></tr>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Genblock</span>
+    <span>Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status">Copied! Paste it into Multiplayer → Add Server</div>
+
+<script>
+  // ---- change this to your server address ----
+  const SERVER_IP = "play.genblock.net";
+
+  // name, block it grows, colors [background, speckle or null for solid blocks], cost, pickaxe needed
+  const GENS = {
+    ore: [
+      ["Coal Gen", "Coal Ore", ["#7d7d7d", "#222"], [[192, "Oak Log"]], "Any"],
+      ["Copper Gen", "Copper Ore", ["#7d7d7d", "#c9734a"], [[128, "Coal"]], "Stone"],
+      ["Iron Gen", "Iron Ore", ["#7d7d7d", "#d8af93"], [[320, "Raw Copper"], [50, "Coal"]], "Stone"],
+      ["Gold Gen", "Gold Ore", ["#7d7d7d", "#f5d33b"], [[256, "Raw Iron"], [64, "Raw Copper"]], "Iron"],
+      ["Diamond Gen", "Diamond Ore", ["#7d7d7d", "#4ee6d8"], [[192, "Oak Log"], [192, "Coal"], [192, "Raw Copper"], [192, "Raw Iron"], [192, "Raw Gold"]], "Iron"],
+      ["Netherite Gen", "Ancient Debris", ["#5e4038", "#8e6a5a"], [[320, "Diamond"], [64, "Raw Iron"], [64, "Raw Copper"], [64, "Coal"]], "Diamond"],
+    ],
+    block: [
+      ["Coal Block Gen", "Coal Block", ["#1c1c1c"], [[128, "Coal"], [128, "Raw Copper"], [128, "Raw Iron"], [128, "Raw Gold"], [128, "Diamond"], [128, "Ancient Debris"]], "Any"],
+      ["Copper Block Gen", "Copper Block", ["#c0603c"], [[128, "Coal Block"]], "Stone"],
+      ["Iron Block Gen", "Iron Block", ["#d8d8d8"], [[128, "Coal Block"], [128, "Copper Block"]], "Stone"],
+      ["Gold Block Gen", "Gold Block", ["#f6d23f"], [[192, "Copper Block"]], "Iron"],
+      ["Diamond Block Gen", "Diamond Block", ["#5fe6db"], [[224, "Copper Block"], [224, "Gold Block"], [30, "Iron Block"]], "Iron"],
+      ["Netherite Block Gen", "Netherite Block", ["#433b3c"], [[320, "Coal Block"], [320, "Copper Block"], [320, "Iron Block"], [320, "Gold Block"], [320, "Diamond Block"]], "Diamond"],
+      ["Emerald Block Gen", "Emerald Block", ["#2fcf6c"], [[320, "Netherite Block"]], "Iron"],
+    ],
+    shack: [
+      ["Oak Gen", "Oak Log", ["#6b5132", "#4a3820"], [], "None (axe is faster)"],
+      ["Stone Gen", "Stone (drops cobblestone)", ["#7d7d7d", "#6a6a6a"], [], "Any"],
+      ["Dirt Gen", "Dirt", ["#866043", "#5e432d"], [], "None (shovel is faster)"],
+    ],
+  };
+
+  // 8x8 pixel block; speckled ore or a solid block with a light edge
+  const SPECKS = [[1,1],[2,1],[1,2],[5,1],[6,2],[5,2],[3,4],[4,4],[4,5],[1,5],[6,5],[6,6],[2,6]];
+  function blockSVG([bg, fg]) {
+    let r = `<rect width="8" height="8" fill="${bg}"/>`;
+    if (fg) for (const [x, y] of SPECKS) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${fg}"/>`;
+    else r += `<rect width="8" height="1" fill="#fff" opacity=".25"/><rect width="1" height="8" fill="#fff" opacity=".15"/><rect y="7" width="8" height="1" fill="#000" opacity=".25"/><rect x="7" width="1" height="8" fill="#000" opacity=".2"/><rect x="2" y="2" width="4" height="4" fill="#fff" opacity=".08"/>`;
+    return `<svg viewBox="0 0 8 8" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${r}</svg>`;
+  }
+  const BASE = ["#5a3f6b", "#a07acb"]; // repeating command block look-alike
+
+  function renderLadder(tab) {
+    document.getElementById("ladder").innerHTML = GENS[tab].map(([name, grows, colors, cost, pick]) => `
+      <div class="gen">
+        ${blockSVG(colors)}
+        <div>
+          <div class="name">${name}</div>
+          <div class="grows">Grows ${grows}</div>
+          <div class="cost">${cost.length ? cost.map(([n, item]) => `<span class="chip"><b>${n}</b> ${item}</span>`).join("") : `<span class="chip"><b>Free</b> at spawn</span>`}</div>
+        </div>
+        <div class="pick"><strong>${pick}</strong>pickaxe</div>
+      </div>`).join("");
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(o => o.setAttribute("aria-selected", o === t));
+    renderLadder(t.dataset.tab);
+  }));
+  renderLadder("ore");
+
+  // hero: a little row of gens (ore on top of the base block)
+  document.getElementById("heroGens").innerHTML = ["#222", "#c9734a", "#f5d33b", "#4ee6d8"]
+    .map(c => `<div class="stack">${blockSVG(["#7d7d7d", c])}${blockSVG(BASE)}</div>`).join("");
+  document.getElementById("navIcon").innerHTML = blockSVG(["#7d7d7d", "#4ee6d8"]).replace("<svg", '<svg width="22" height="22"');
+
+  // copy address
+  document.getElementById("ipText").textContent = SERVER_IP;
+  const toast = document.getElementById("toast");
+  document.getElementById("ipBtn").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(SERVER_IP); } catch { prompt("Server address:", SERVER_IP); return; }
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1800);
+  });
+
+  // live status from mcsrvstat.us
+  const dot = document.getElementById("dot"), statusText = document.getElementById("statusText");
+  fetch(`https://api.mcsrvstat.us/3/${encodeURIComponent(SERVER_IP)}`)
+    .then(r => r.json())
+    .then(s => {
+      if (s.online) {
+        dot.className = "dot on";
+        statusText.textContent = `Online · ${s.players?.online ?? 0}/${s.players?.max ?? "?"} playing`;
+      } else {
+        dot.className = "dot off";
+        statusText.textContent = "Offline right now";
+      }
+    })
+    .catch(() => { statusText.textContent = "Status unavailable"; });
+</script>
+</body>
+</html>
